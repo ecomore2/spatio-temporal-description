@@ -93,18 +93,6 @@ with(data, plot(log(Moved_since_2005), log(All / nb_person_2014)))
 ```
 
 ```{r}
-mod4 <- glm(All ~ Moved_since_2005 + as.factor(CAT_City_2), poisson, data, offset = log(nb_person_2014))
-summary(mod4)
-anova(mod4, test = "LRT")
-cbind(exp(coef(mod4)), exp(confint(mod4)))
-```
-
-```{r}
-deviance(mod3)
-deviance(mod4)
-```
-
-```{r}
 mod5 <- glm(All ~ Water_In_House + Moved_since_2005 + as.factor(Urban_Type), poisson, data, offset = log(nb_person_2014))
 summary(mod5)
 anova(mod5, test = "LRT")
@@ -135,9 +123,9 @@ cbind(exp(coef(mod7)), exp(confint(mod7)))
 Final model, writing the residuals into a CSV file:
 
 ```{r}
-mod7 <- glm(All ~ as.factor(Urban_Type) + Moved_since_2005, poisson, data, offset = log(nb_person_2014))
+mod7 <- glm(All ~ as.factor(Urban_Type) + Moved_since_2005, poisson, data, offset = log(nb_person_2014), na.action = na.exclude)
 summary(mod7)
 anova(mod7, test = "LRT")
 cbind(exp(coef(mod7)), exp(confint(mod7)))
-write.csv(as.data.frame(resid(mod7)), "residuals.csv", quote = FALSE, row.names = FALSE)
+write.csv(data.frame(code_sig = data$code_sig, residuals = resid(mod7)), "residuals.csv", quote = FALSE, row.names = FALSE)
 ```
