@@ -1,0 +1,143 @@
+---
+title: "Poisson regression"
+csl: the-american-naturalist.csl
+output:
+  html_document:
+    theme: cerulean
+    toc: yes
+  pdf_document:
+    toc: yes
+<!-- bibliography: references.bib -->
+editor_options: 
+  chunk_output_type: console
+---
+
+<!--
+IMAGES:
+Insert them with: ![alt text](image.png)
+You can also resize them if needed: convert image.png -resize 50% image.png
+If you want to center the image, go through HTML code:
+<div style="text-align:center"><img src ="image.png"/></div>
+
+REFERENCES:
+For references: Put all the bibTeX references in the file "references.bib"
+in the current folder and cite the references as @key or [@key] in the text.
+Uncomment the bibliography field in the above header and put a "References"
+title wherever you want to display the reference list.
+-->
+
+<style type="text/css">
+.main-container {
+  max-width: 1370px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+```{r general_options, include = FALSE}
+knitr::knit_hooks$set(
+  margin = function(before, options, envir) {
+    if (before) par(mgp = c(1.5, .5, 0), bty = "n", plt = c(.105, .97, .13, .97))
+    else NULL
+  },
+  prompt = function(before, options, envir) {
+    options(prompt = if (options$engine %in% c("sh", "bash")) "$ " else "> ")
+  })
+
+knitr::opts_chunk$set(margin = TRUE, prompt = TRUE, comment = "",
+                      collapse = TRUE, cache = FALSE, autodep = TRUE,
+                      dev.args = list(pointsize = 11), fig.height = 3.5,
+                      fig.width = 4.24725, fig.retina = 2, fig.align = "center")
+
+options(width = 137)
+```
+
+Downloading the data:
+
+```{r}
+tmp <- tempfile(fileext = "xlsx")
+download.file("https://www.dropbox.com/s/3uq5zaqt7tdqro8/Census%202015%20village%20dengue%20and%20built%20Up.xlsx?raw=1", tmp)
+data <- readxl::read_excel(tmp)
+```
+
+Renaming the variables (replacing spaces with `_`)
+
+```{r}
+names(data) <- gsub(" +", "_", names(data))
+```
+
+```{r}
+mod1 <- glm(All ~ as.factor(Urban_Type), poisson, data, offset = log(nb_person_2014))
+summary(mod1)
+anova(mod1, test = "LRT")
+```
+
+```{r}
+mod2 <- glm(All ~ ordered(Born_in_this_place_CAT) + as.factor(Urban_Type), poisson, data, offset = log(nb_person_2014))
+summary(mod2)
+anova(mod2, test = "LRT")
+cbind(exp(coef(mod2)), exp(confint(mod2)))
+```
+
+```{r}
+mod3 <- glm(All ~ Moved_since_2005 + as.factor(Urban_Type), poisson, data, offset = log(nb_person_2014))
+summary(mod3)
+anova(mod3, test = "LRT")
+cbind(exp(coef(mod3)), exp(confint(mod3)))
+```
+
+```{r}
+with(data, plot(Moved_since_2005, log(All)))
+with(data, plot(Moved_since_2005, log(All / nb_person_2014)))
+with(data, plot(log(Moved_since_2005), log(All / nb_person_2014)))
+```
+
+```{r}
+mod4 <- glm(All ~ Moved_since_2005 + as.factor(CAT_City_2), poisson, data, offset = log(nb_person_2014))
+summary(mod4)
+anova(mod4, test = "LRT")
+cbind(exp(coef(mod4)), exp(confint(mod4)))
+```
+
+```{r}
+deviance(mod3)
+deviance(mod4)
+```
+
+```{r}
+mod5 <- glm(All ~ Water_In_House + Moved_since_2005 + as.factor(Urban_Type), poisson, data, offset = log(nb_person_2014))
+summary(mod5)
+anova(mod5, test = "LRT")
+cbind(exp(coef(mod5)), exp(confint(mod5)))
+```
+
+```{r}
+mod6 <- glm(All ~ Water_In_House + as.factor(Urban_Type) + Moved_since_2005, poisson, data, offset = log(nb_person_2014))
+summary(mod6)
+anova(mod6, test = "LRT")
+cbind(exp(coef(mod6)), exp(confint(mod6)))
+```
+
+```{r}
+mod7 <- glm(All ~ as.factor(Urban_Type) + Work_Mig, poisson, data, offset = log(nb_person_2014))
+summary(mod7)
+anova(mod7, test = "LRT")
+cbind(exp(coef(mod7)), exp(confint(mod7)))
+```
+
+```{r}
+mod7 <- glm(All ~ Work_Mig + as.factor(Urban_Type), poisson, data, offset = log(nb_person_2014))
+summary(mod7)
+anova(mod7, test = "LRT")
+cbind(exp(coef(mod7)), exp(confint(mod7)))
+```
+
+Final model, writing the residuals into a CSV file:
+
+```{r}
+mod7 <- glm(All ~ as.factor(Urban_Type) + Moved_since_2005, poisson, data, offset = log(nb_person_2014))
+summary(mod7)
+anova(mod7, test = "LRT")
+cbind(exp(coef(mod7)), exp(confint(mod7)))
+write.csv(as.data.frame(resid(mod7)), "residuals.csv", quote = FALSE, row.names = FALSE)
+```
