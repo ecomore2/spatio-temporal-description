@@ -1,0 +1,17 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# spatio temporal description
+
+<!-- badges: start -->
+
+<!-- badges: end -->
+
+[Manuscript](https://docs.google.com/document/d/1oFKw7j7Vkl4Yjs2HwFs57mhg7tQy3ldszShspn5CEYc/edit)
+
+## R codes
+
+  - [Poisson
+    regression](https://ecomore2.github.io/spatio-temporal-description/poisson.html)
+  - [Data
+    exploration](https://ecomore2.github.io/spatio-temporal-description/data_exploration.html)
